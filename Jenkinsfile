@@ -39,12 +39,6 @@ pipeline{
                 sh 'docker push quyhoangtat/ui:latest'
             }
         }
-        stage('Deploy to Staging Environment') {
-            steps {
-                sh 'aws eks --region ap-southeast-1 update-kubeconfig --name eks-cicd-staging'
-                sh 'kubectl apply -f dist/kubernetes/deploy.yaml'
-            }
-        }
         stage('Deploy to Production Environment') {
             steps {
                 script {
