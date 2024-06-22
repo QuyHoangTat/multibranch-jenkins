@@ -31,12 +31,12 @@ pipeline{
         }
         stage('Push Images to Docker Hub') {
             steps {
-                sh 'docker push dinhcam89/dinhcam89-catalog:latest'
-                sh 'docker push dinhcam89/dinhcam89-cart:latest'
-                sh 'docker push dinhcam89/dinhcam89-orders:latest'
-                sh 'docker push dinhcam89/dinhcam89-checkout:latest'
-                sh 'docker push dinhcam89/dinhcam89-assets:latest'
-                sh 'docker push dinhcam89/dinhcam89-ui:latest'
+                sh 'docker push quyhoangtat/catalog:latest'
+                sh 'docker push quyhoangtat/cart:latest'
+                sh 'docker push quyhoangtat/orders:latest'
+                sh 'docker push quyhoangtat/checkout:latest'
+                sh 'docker push quyhoangtat/assets:latest'
+                sh 'docker push quyhoangtat/ui:latest'
             }
         }
         stage('Deploy to Staging Environment') {
