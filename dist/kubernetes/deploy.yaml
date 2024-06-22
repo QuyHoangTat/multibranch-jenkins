@@ -19,7 +19,7 @@ metadata:
   name: catalog-db
 data:
   username: "Y2F0YWxvZw=="
-  password: "aGNzNXhpcXY3M09PcEx3UQ=="
+  password: "dnk1dzdEVEFGUjhVOEhhTA=="
 ---
 # Source: catalog/templates/configmap.yml
 apiVersion: v1
@@ -141,7 +141,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "dinhcam89/dinhcam89-catalog:latest"
+          image: "quyhoangtat/catalog:latest"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -355,7 +355,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "dinhcam89/dinhcam89-cart:latest"
+          image: "quyhoangtat/cart:latest"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -436,7 +436,7 @@ metadata:
   name: orders-db
 data:
   username: "b3JkZXJz"
-  password: "T2NBdXcyb2dTbzYzeWUwTA=="
+  password: "NExHQUp2VHk1enY5RURhVQ=="
 ---
 # Source: orders/templates/rabbitmq-secret.yaml
 apiVersion: v1
@@ -596,7 +596,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "dinhcam89/dinhcam89-orders:latest"
+          image: "quyhoangtat/orders:latest"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -844,7 +844,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "dinhcam89/dinhcam89-checkout:latest"
+          image: "quyhoangtat/checkout:latest"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -996,7 +996,7 @@ spec:
               drop:
               - ALL
             readOnlyRootFilesystem: false
-          image: "dinhcam89/dinhcam89-assets:latest"
+          image: "quyhoangtat/assets:latest"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -1130,7 +1130,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "dinhcam89/dinhcam89-ui:latest"
+          image: "quyhoangtat/ui:0.8.0"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -1155,4 +1155,3 @@ spec:
         - name: tmp-volume
           emptyDir:
             medium: Memory
-
