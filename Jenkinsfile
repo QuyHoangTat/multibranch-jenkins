@@ -1,5 +1,4 @@
-pipeline{
-
+pipeline {
     agent any
 
     environment {
@@ -7,71 +6,37 @@ pipeline{
     }
 
     stages {
-        stage('Login to Docker Hub') {
+        stage('Check SCM') {
             steps {
-                sh 'sudo su - jenkins'
-                sh 'echo $DOCKERHB_CREDENTIALS_PSW | echo $DOCKERHB_CREDENTIALS_USR | docker login -u $DOCKERHB_CREDENTIALS_USR -p $DOCKERHB_CREDENTIALS_PSW'
+                checkout scm
             }
         }
-        stage('Build Docker Images') {
+        stage('Install Libraries') {
             steps {
-                sh "chmod +x -R ${env.WORKSPACE}"
-                sh 'scripts/build-image.sh -s assets -t latest'
-                sh 'scripts/build-image.sh -s cart -t latest'
-                sh 'scripts/build-image.sh -s catalog -t latest'
-                sh 'scripts/build-image.sh -s checkout -t latest'
-                sh 'scripts/build-image.sh -s orders -t latest'
-                sh 'scripts/build-image.sh -s ui -t latest'
+                sh 'scripts/install-libraries.sh'
             }
         }
-        stage('View Images') {
+        stage('Run Tests') {
             steps {
-                sh 'docker images'
+                sh 'scripts/run-tests.sh'
             }
         }
-        stage('Push Images to Docker Hub') {
-            steps {
-                sh 'docker push dinhcam89/dinhcam89-catalog:latest'
-                sh 'docker push dinhcam89/dinhcam89-cart:latest'
-                sh 'docker push dinhcam89/dinhcam89-orders:latest'
-                sh 'docker push dinhcam89/dinhcam89-checkout:latest'
-                sh 'docker push dinhcam89/dinhcam89-assets:latest'
-                sh 'docker push dinhcam89/dinhcam89-ui:latest'
-            }
-        }
-        stage('Deploy to Staging Environment') {
+        stage('Deploy to Test Server') {
             steps {
                 sh 'aws eks --region ap-southeast-1 update-kubeconfig --name eks-cicd-staging'
                 sh 'kubectl apply -f dist/kubernetes/deploy.yaml'
             }
         }
-        stage('Deploy to Production Environment') {
+        stage('Run Application on Test Environment') {
             steps {
-                script {
-                    try{
-                        timeout(time: 5, unit: 'MINUTES') {
-                            env.useChoice = input message: "Can it be deployed to the production environment?", ok: "Yes",
-                            parameters: [choice(name: 'useChoice', choices: 'Yes\nNo', description: 'Choose whether to deploy to production or not')]
-                        }
-                        if (env.useChoice == 'Yes') {
-                            sh 'sudo su - jenkins'
-                            sh 'aws eks --region ap-southeast-1 update-kubeconfig --name eks-cicd-prod'
-                            sh 'kubectl apply -f dist/kubernetes/deploy.yaml'
-                        } else {
-                            echo 'The deployment is not allowed to the production environment'
-                        }
-                    }
-                    catch (Exception err) {
-                        // handle the exception
-                    }
-                }
+                sh 'docker-compose -f docker-compose-test.yml up -d'
             }
         }
     }
     post {
         always {
             cleanWs()
-            sh 'docker logout'
+            sh 'docker-compose -f docker-compose-test.yml down'
         }
     }
 }
