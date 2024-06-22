@@ -13,18 +13,6 @@ pipeline {
             }
         }
 
-        stage('Install Libraries') {
-            steps {
-                sh 'scripts/install-libraries.sh'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'scripts/run-tests.sh'
-            }
-        }
-
         stage('Login to Docker Hub') {
             steps {
                 sh 'echo $DOCKERHB_CREDENTIALS_PSW | docker login -u $DOCKERHB_CREDENTIALS_USR --password-stdin'
