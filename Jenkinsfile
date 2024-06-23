@@ -54,9 +54,6 @@ pipeline {
         }
 
         stage('Conditional Deploy to Production Environment') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     deployToEnvironment('eks-cicd-prod')
