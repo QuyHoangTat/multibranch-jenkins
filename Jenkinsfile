@@ -13,11 +13,13 @@ pipeline {
         }
         stage('Install Libraries') {
             steps {
+                sh 'chmod +x scripts/install-libraries.sh'
                 sh 'scripts/install-libraries.sh'
             }
         }
         stage('Run Tests') {
             steps {
+                sh 'chmod +x scripts/run-tests.sh'
                 sh 'scripts/run-tests.sh'
             }
         }
