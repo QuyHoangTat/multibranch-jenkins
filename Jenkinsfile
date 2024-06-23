@@ -32,16 +32,10 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy to Staging Environment') {
-            steps {
-                script {
-                    deployToEnvironment('eks-cicd-staging')
-                }
+        stage('Conditional Deploy to Production Environment') {
+            when {
+                branch 'main'
             }
-        }
-
-        stage('Deploy to Production Environment') {
             steps {
                 script {
                     deployToEnvironment('eks-cicd-prod')
