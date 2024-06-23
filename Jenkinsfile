@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKERHB_CREDENTIALS = credentials('dockerhub')
-        PREV_IMAGE_TAG = ""  // Biến lưu trữ tag của image trước khi triển khai
+        CURRENT_IMAGE_TAG = ""  // Biến lưu trữ tag của image hiện tại sau khi triển khai
+        PREVIOUS_IMAGE_TAG = ""  // Biến lưu trữ tag của image trước khi triển khai
     }
 
     stages {
@@ -47,13 +48,16 @@ pipeline {
                     updateDeploymentImage('orders', previousTag)
                     updateDeploymentImage('ui', previousTag)
 
-                    // Áp dụng các thay đổi vào Kubernetes cluster
-                    sh "kubectl apply -f dist/kubernetes/deploy.yaml"
+                    // Lưu tag của image hiện tại để sử dụng cho rollback nếu cần
+                    CURRENT_IMAGE_TAG = "${BUILD_NUMBER}"
                 }
             }
         }
 
         stage('Conditional Deploy to Production Environment') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     deployToEnvironment('eks-cicd-prod')
@@ -75,7 +79,7 @@ pipeline {
             cleanWs()
             sh 'docker logout'
             // Lưu lại tag của image đã triển khai vào rollback_tag.txt để sử dụng cho rollback
-            writeFile(file: 'rollback_tag.txt', text: PREV_IMAGE_TAG)
+            writeFile(file: 'rollback_tag.txt', text: PREVIOUS_IMAGE_TAG)
         }
     }
 }
@@ -91,8 +95,8 @@ def buildAndPushImage(service) {
                 sh "docker tag quyhoangtat/${service}:${BUILD_NUMBER} quyhoangtat/${service}:${BUILD_NUMBER}"
                 sh "docker push quyhoangtat/${service}:${BUILD_NUMBER}"
 
-                // Lưu trữ tag của image đã triển khai vào biến PREV_IMAGE_TAG
-                PREV_IMAGE_TAG = "${BUILD_NUMBER}"
+                // Lưu trữ tag của image đã triển khai vào biến PREVIOUS_IMAGE_TAG
+                PREVIOUS_IMAGE_TAG = "${BUILD_NUMBER}"
             }
         }
     }
@@ -138,7 +142,10 @@ def runStageRollback() {
                     sh "docker push quyhoangtat/${service}:${previousTag}"
 
                     // Cập nhật lại biến lưu trữ tag của image đã triển khai
-                    PREV_IMAGE_TAG = previousTag
+                    CURRENT_IMAGE_TAG = previousTag
+
+                    // Cập nhật lại deployment.yaml sau khi rollback
+                    updateDeploymentImage(service, previousTag)
                 }
             }
         }
