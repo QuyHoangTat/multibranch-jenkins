@@ -33,6 +33,26 @@ pipeline {
             }
         }
 
+        stage('Update Deployment Images') {
+            steps {
+                script {
+                    // Đọc phiên bản (tag) của từng service từ rollback_tag.txt
+                    def previousTag = readFile('rollback_tag.txt').trim()
+
+                    // Cập nhật images trong deployment.yaml
+                    updateDeploymentImage('assets', previousTag)
+                    updateDeploymentImage('cart', previousTag)
+                    updateDeploymentImage('catalog', previousTag)
+                    updateDeploymentImage('checkout', previousTag)
+                    updateDeploymentImage('orders', previousTag)
+                    updateDeploymentImage('ui', previousTag)
+
+                    // Áp dụng các thay đổi vào Kubernetes cluster
+                    sh "kubectl apply -f dist/kubernetes/deploy.yaml"
+                }
+            }
+        }
+
         stage('Conditional Deploy to Production Environment') {
             when {
                 branch 'main'
@@ -115,6 +135,18 @@ def runStageRollback() {
                     // Cập nhật lại biến lưu trữ tag của image đã triển khai
                     PREV_IMAGE_TAG = previousTag
                 }
+            }
+        }
+    }
+}
+
+def updateDeploymentImage(service, newTag) {
+    stage("Update ${service} Deployment Image") {
+        steps {
+            script {
+                // Đọc và chỉnh sửa deployment.yaml
+                sh "sed -i \"s/image: quyhoangtat/${service}:.*/image: quyhoangtat/${service}:${newTag}/\" dist/kubernetes/deploy.yaml"
+                sh "kubectl apply -f dist/kubernetes/deploy.yaml"
             }
         }
     }
