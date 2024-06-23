@@ -63,6 +63,14 @@ pipeline {
                 }
             }
         }
+
+        stage('Rollback Deployed Images') {
+            steps {
+                script {
+                    runStageRollback()
+                }
+            }
+        }
     }
 
     post {
