@@ -22,7 +22,7 @@ pipeline {
         stage('Build and Push Docker Images') {
             steps {
                 script {
-                    // Xây dựng và đẩy image cho từng service
+                    // Xây dựng và đẩy image cho từng service với tag là phiên bản cụ thể
                     buildAndPushImage('assets')
                     buildAndPushImage('cart')
                     buildAndPushImage('catalog')
@@ -32,6 +32,7 @@ pipeline {
                 }
             }
         }
+
         stage('Conditional Deploy to Production Environment') {
             when {
                 branch 'main'
@@ -58,15 +59,15 @@ def buildAndPushImage(service) {
     stage("Build and Push ${service} Image") {
         steps {
             script {
-                // Xây dựng image
-                sh "scripts/build-image.sh -s ${service} -t latest"
+                // Xây dựng image với tag là phiên bản cụ thể
+                sh "scripts/build-image.sh -s ${service} -t ${BUILD_NUMBER}"
 
                 // Đổi tên và đẩy image lên Docker Hub
-                sh "docker tag quyhoangtat/${service}:latest quyhoangtat/${service}:latest"
-                sh "docker push quyhoangtat/${service}:latest"
+                sh "docker tag quyhoangtat/${service}:${BUILD_NUMBER} quyhoangtat/${service}:${BUILD_NUMBER}"
+                sh "docker push quyhoangtat/${service}:${BUILD_NUMBER}"
 
                 // Lưu trữ tag của image đã triển khai vào biến PREV_IMAGE_TAG
-                PREV_IMAGE_TAG = 'latest'
+                PREV_IMAGE_TAG = "${BUILD_NUMBER}"
             }
         }
     }
@@ -108,8 +109,8 @@ def runStageRollback() {
 
                     // Thực hiện rollback bằng cách kéo image về từ Docker Hub và đặt lại tag
                     sh "docker pull quyhoangtat/${service}:${previousTag}"
-                    sh "docker tag quyhoangtat/${service}:${previousTag} quyhoangtat/${service}:latest"
-                    sh "docker push quyhoangtat/${service}:latest"
+                    sh "docker tag quyhoangtat/${service}:${previousTag} quyhoangtat/${service}:${previousTag}"
+                    sh "docker push quyhoangtat/${service}:${previousTag}"
 
                     // Cập nhật lại biến lưu trữ tag của image đã triển khai
                     PREV_IMAGE_TAG = previousTag
