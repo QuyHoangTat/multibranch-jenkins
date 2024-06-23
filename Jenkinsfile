@@ -158,8 +158,15 @@ def updateDeploymentImage(service, newTag) {
             script {
                 // Đọc và chỉnh sửa deployment.yaml
                 sh "sed -i \"s/image: quyhoangtat/${service}:.*/image: quyhoangtat/${service}:${newTag}/\" dist/kubernetes/deploy.yaml"
-                sh "kubectl apply -f dist/kubernetes/deploy.yaml"
+
+                // Commit và push lại deployment.yaml lên GitHub
+                sh "git config --global user.email 'admin@admin.com'"
+                sh "git config --global user.name 'Jenkins Automation'"
+                sh "git add dist/kubernetes/deploy.yaml"
+                sh "git commit -m 'Update ${service} deployment image tag to ${newTag}'"
+                sh "git push origin main"
             }
         }
     }
 }
+
