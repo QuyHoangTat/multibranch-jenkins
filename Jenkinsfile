@@ -20,12 +20,12 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 sh "chmod +x -R ${env.WORKSPACE}"
-                sh 'scripts/build-image.sh -s assets -t staging'
-                sh 'scripts/build-image.sh -s cart -t staging'
-                sh 'scripts/build-image.sh -s catalog -t staging'
-                sh 'scripts/build-image.sh -s checkout -t staging'
-                sh 'scripts/build-image.sh -s orders -t staging'
-                sh 'scripts/build-image.sh -s ui -t staging'
+                sh 'scripts/build-image.sh -s assets -t latest'
+                sh 'scripts/build-image.sh -s cart -t latest'
+                sh 'scripts/build-image.sh -s catalog -t latest'
+                sh 'scripts/build-image.sh -s checkout -t latest'
+                sh 'scripts/build-image.sh -s orders -t latest'
+                sh 'scripts/build-image.sh -s ui -t latest'
             }
         }
         stage('View Images') {
@@ -35,12 +35,12 @@ pipeline {
         }
         stage('Push Images to Docker Hub') {
             steps {
-                sh 'docker push quyhoangtat/catalog:staging'
-                sh 'docker push quyhoangtat/cart:staging'
-                sh 'docker push quyhoangtat/orders:staging'
-                sh 'docker push quyhoangtat/checkout:staging'
-                sh 'docker push quyhoangtat/assets:staging'
-                sh 'docker push quyhoangtat/ui:staging'
+                sh 'docker push quyhoangtat/catalog:latest'
+                sh 'docker push quyhoangtat/cart:latest'
+                sh 'docker push quyhoangtat/orders:latest'
+                sh 'docker push quyhoangtat/checkout:latest'
+                sh 'docker push quyhoangtat/assets:latest'
+                sh 'docker push quyhoangtat/ui:latest'
             }
         }
         stage('Deploy to Staging Environment') {
