@@ -23,6 +23,9 @@ pipeline {
         stage('Build and Push Docker Images') {
             steps {
                 script {
+                    // Gán quyền thực thi cho build-image.sh
+                    sh 'chmod +x scripts/build-image.sh'
+
                     // Xây dựng và đẩy image cho từng service với tag là phiên bản cụ thể
                     buildAndPushImage('assets')
                     buildAndPushImage('cart')
@@ -37,16 +40,18 @@ pipeline {
         stage('Update Deployment Images') {
             steps {
                 script {
-                    // Đọc phiên bản (tag) của từng service từ rollback_tag.txt
-                    def previousTag = readFile('rollback_tag.txt').trim()
+                    // Đọc phiên bản (tag) của từng service từ rollback_tag.txt nếu tồn tại
+                    if (fileExists('rollback_tag.txt')) {
+                        env.PREVIOUS_IMAGE_TAG = readFile('rollback_tag.txt').trim()
+                    }
 
                     // Cập nhật images trong deployment.yaml
-                    updateDeploymentImage('assets', previousTag)
-                    updateDeploymentImage('cart', previousTag)
-                    updateDeploymentImage('catalog', previousTag)
-                    updateDeploymentImage('checkout', previousTag)
-                    updateDeploymentImage('orders', previousTag)
-                    updateDeploymentImage('ui', previousTag)
+                    updateDeploymentImage('assets', env.PREVIOUS_IMAGE_TAG)
+                    updateDeploymentImage('cart', env.PREVIOUS_IMAGE_TAG)
+                    updateDeploymentImage('catalog', env.PREVIOUS_IMAGE_TAG)
+                    updateDeploymentImage('checkout', env.PREVIOUS_IMAGE_TAG)
+                    updateDeploymentImage('orders', env.PREVIOUS_IMAGE_TAG)
+                    updateDeploymentImage('ui', env.PREVIOUS_IMAGE_TAG)
 
                     // Lưu tag của image hiện tại để sử dụng cho rollback nếu cần
                     env.CURRENT_IMAGE_TAG = "${env.BUILD_NUMBER}"
@@ -78,8 +83,14 @@ pipeline {
         always {
             cleanWs()
             sh 'docker logout'
-            // Lưu lại tag của image đã triển khai vào rollback_tag.txt để sử dụng cho rollback
-            writeFile(file: 'rollback_tag.txt', text: env.PREVIOUS_IMAGE_TAG)
+            // Kiểm tra biến env.PREVIOUS_IMAGE_TAG trước khi sử dụng
+            script {
+                if (env.PREVIOUS_IMAGE_TAG) {
+                    writeFile(file: 'rollback_tag.txt', text: env.PREVIOUS_IMAGE_TAG)
+                } else {
+                    echo "env.PREVIOUS_IMAGE_TAG is not set, skipping writeFile."
+                }
+            }
         }
     }
 }
